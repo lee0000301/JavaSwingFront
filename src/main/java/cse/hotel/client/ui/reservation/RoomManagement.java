@@ -1,61 +1,91 @@
 package cse.hotel.client.ui.reservation;
 
-import javax.swing.JOptionPane;
+import cse.hotel.client.network.HotelClient;
+import cse.hotel.common.packet.Request;
+import cse.hotel.common.packet.Response;
+import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class RoomManagement extends javax.swing.JFrame {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RoomManagement.class.getName());
+
+    private ReservationUI parentUI;
+    private String roomNoStr;
     private String currentStatus;
-    
-    public RoomManagement(String reservationNo, String customerName, 
-                          String checkInDate, String checkOutDate, 
-                          String roomNo, String status, String roomType) {
 
-        initComponents(); // UI 초기화
+    public RoomManagement(String resNo, String custId, String inDate, String outDate, 
+                          String roomNo, String status, String type, ReservationUI parent) {
         
+        // 1. 팀원 UI 초기화
+        initComponents(); 
         
+        this.parentUI = parent;
+        this.roomNoStr = roomNo;
+        this.currentStatus = status;
+        setTitle("객실 상세 관리 (" + roomNo + "호)");
+        
+        // 2. 데이터 세팅 (팀원 UI 컴포넌트에)
+        jTextField7.setText(resNo); // 예약번호
+        jTextField1.setText(custId); // 고객명
+        jTextField3.setText(inDate); // 체크인
+        jTextField5.setText(outDate); // 체크아웃
+        jTextField4.setText(roomNo); // 방번호
+        jTextField6.setText(type); // 타입
+        
+        // 3. 수정 불가 설정
+        jTextField7.setEditable(false);
+        jTextField4.setEditable(false);
+        jTextField6.setEditable(false);
 
-        jButton4.addActionListener(evt -> handleSave());
+        // 4. 버튼 상태 및 리스너 설정
+        updateCheckInButtonState();
+        jButton2.addActionListener(e -> handleCheckIn()); // 체크인
+        jButton1.addActionListener(e -> dispose()); // 닫기(X)
+        jButton5.addActionListener(e -> dispose()); // 닫기(하단)
         
-        // 텍스트 필드에 전달받은 값 세팅
-        jTextField7.setText(reservationNo); // 예약 번호
-        jTextField1.setText(customerName);  // 고객명
-        jTextField3.setText(checkInDate);   // 체크인 날짜
-        jTextField5.setText(checkOutDate);  // 체크아웃 날짜
-        jTextField4.setText(roomNo);        // 객실 번호
-        jTextField6.setText(roomType);      // 객실 타입
-        
-        // 변경 불가 필드 설정
-        jTextField7.setEditable(false); // 예약 번호
-        jTextField4.setEditable(false); // 객실 번호
-        jTextField6.setEditable(false); // 객실 타입
-        
-        // 체크인 로직 구현
-        this.currentStatus = status; // 전달받은 상태를 멤버 변수에 저장
-        updateCheckInButtonState(); // 상태에 따라 버튼/라벨 UI 업데이트
-
-        // 체크인 버튼(jButton2)에 클릭 리스너 추가
-        jButton2.addActionListener(evt -> handleCheckIn());
-        
-        // 기본 X 버튼 동작 안하게 설정
-        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-
-        // X 버튼을 누르는 이벤트(windowClosing)를 우리가 가로채서
-        //      직접 만든 closeWindow() 메서드를 호출하도록 설정
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                closeWindow(); // 팝업창 띄우는 공통 메서드 호출
-            }
-        });
-
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
-    
+    // --- 체크인 로직 ---
+    private void handleCheckIn() {
+        if (JOptionPane.showConfirmDialog(this, roomNoStr + "호 체크인을 진행하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            try {
+                Request req = new Request("CHECK_IN", Integer.parseInt(roomNoStr));
+                Response res = HotelClient.sendRequest(req);
+                
+                if (res.isSuccess()) {
+                    JOptionPane.showMessageDialog(this, "체크인 성공!");
+                    this.currentStatus = "점유중";
+                    updateCheckInButtonState();
+                    
+                    // 부모창 새로고침
+                    if (parentUI != null) {
+                        parentUI.loadData(); 
+                        parentUI.refreshRoomStatus();
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "실패: " + res.getMessage());
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+    }
+
+    // --- 버튼 상태 갱신 ---
+    private void updateCheckInButtonState() {
+        if ("예약됨".equals(this.currentStatus) || "RESERVED".equals(this.currentStatus) || "CONFIRMED".equals(this.currentStatus)) {
+            jButton2.setEnabled(true);
+            jButton2.setText("체크인");
+        } else {
+            jButton2.setEnabled(false);
+            jButton2.setText(this.currentStatus); // 현재 상태 표시 (예: 점유중)
+        }
+    }
+
+    // ================================================================================
+    // ▼▼▼ [팀원분의 NetBeans 생성 코드] ▼▼▼
+    // ================================================================================
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         jLabel6 = new javax.swing.JLabel();
@@ -98,11 +128,6 @@ public class RoomManagement extends javax.swing.JFrame {
         jButton1.setForeground(new java.awt.Color(0, 0, 0));
         jButton1.setText("X");
         jButton1.setBorderPainted(false);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
 
         jLabel10.setFont(new java.awt.Font("맑은 고딕", 1, 14)); // NOI18N
         jLabel10.setForeground(new java.awt.Color(0, 0, 0));
@@ -159,18 +184,8 @@ public class RoomManagement extends javax.swing.JFrame {
         jTextField5.setText("2025-10-03");
 
         jTextField6.setText("Standard");
-        jTextField6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField6ActionPerformed(evt);
-            }
-        });
 
         jTextField7.setText("232152");
-        jTextField7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField7ActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -265,20 +280,10 @@ public class RoomManagement extends javax.swing.JFrame {
         jButton4.setBackground(new java.awt.Color(150, 150, 150));
         jButton4.setForeground(new java.awt.Color(0, 0, 0));
         jButton4.setText("저장");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
-            }
-        });
 
         jButton5.setBackground(new java.awt.Color(150, 150, 150));
         jButton5.setForeground(new java.awt.Color(0, 0, 0));
         jButton5.setText("닫기");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
-            }
-        });
 
         jSeparator1.setBackground(new java.awt.Color(0, 0, 0));
         jSeparator1.setPreferredSize(new java.awt.Dimension(0, 20));
@@ -332,87 +337,9 @@ public class RoomManagement extends javax.swing.JFrame {
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>                        
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        closeWindow(); // 함수 호출 (종료하시겠습니까?)
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jTextField7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField7ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField7ActionPerformed
-
-    private void jTextField6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField6ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField6ActionPerformed
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        closeWindow(); // 함수 호출 (종료하시겠습니까?)
-    }//GEN-LAST:event_jButton5ActionPerformed
-
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton4ActionPerformed
-
-    private void handleSave() {
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                "저장하시겠습니까?",
-                "저장 확인",
-                JOptionPane.YES_NO_OPTION);
-
-        if (result == JOptionPane.YES_OPTION) {
-            // TODO: 여기에 실제 저장 로직을 구현해야 합니다.
-            // (예: 변경된 고객명, 날짜, 그리고 'this.currentStatus' 값을
-            //  ReservationUI 테이블 모델이나 DB에 업데이트)
-
-            System.out.println("저장 로직 실행됨 (새 상태: " + this.currentStatus + ")");
-
-            this.dispose(); // 저장이 완료되면 창 닫기
-        }
-    }
-    
-    private void updateCheckInButtonState() {
- 
-        if ("예약됨".equals(this.currentStatus)) {
-            jButton2.setText("체크인");
-            jButton2.setEnabled(true); // '예약됨' 상태일 때만 버튼 활성화
-        } else {
-            // "점유중", "청소중" 또는 그 외 모든 상태
-            jButton2.setText("체크인");
-            jButton2.setEnabled(false); // 그 외 상태일 땐 비활성화
-        }
-    }
-    
-    /**
-     * 체크인 버튼(jButton2)을 클릭했을 때 호출
-     */
-    private void handleCheckIn() {
-        // 내부 상태를 '점유중'으로 변경
-        this.currentStatus = "점유중";
-        
-        // UI(라벨, 버튼)를 즉시 갱신
-        updateCheckInButtonState(); 
-        
-        // (참고: 이 변경 사항은 '저장' 버튼을 눌러야 최종 반영됩니다.)
-    }
-    /**
-    * [Feature 3]
-    * 창을 닫기 전 사용자에게 확인 팝업을 띄웁니다.
-    */
-   private void closeWindow() {
-       int result = JOptionPane.showConfirmDialog(
-               this, // 부모 창
-               "종료하시겠습니까?", // 메시지
-               "종료 확인", // 타이틀
-               JOptionPane.YES_NO_OPTION);
-
-       if (result == JOptionPane.YES_OPTION) {
-           this.dispose(); // '예'를 누르면 현재 창만 닫기
-       }
-   }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton4;
@@ -437,5 +364,5 @@ public class RoomManagement extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField5;
     private javax.swing.JTextField jTextField6;
     private javax.swing.JTextField jTextField7;
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
 }

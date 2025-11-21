@@ -1,4 +1,3 @@
-
 package cse.hotel.common.model;
 
 import java.io.Serializable;

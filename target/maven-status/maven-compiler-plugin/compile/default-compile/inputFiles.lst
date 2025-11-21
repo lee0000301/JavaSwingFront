@@ -5,10 +5,12 @@ D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\custo
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\CustomerFormDialog.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\CustomerManagerGUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\food\FoodUI.java
-D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\HotelMainUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\CustomerMainUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\HotelMainUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\HotelManagementSystem.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\reservation\NewReservationDialog.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\reservation\ReservationUI.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\reservation\RoomManagement.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\room\RoomUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\WaitingListDialog.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\exception\DataNotFoundException.java
@@ -16,6 +18,7 @@ D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\exceptio
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\ClientReservation.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Customer.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Food.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Reservation.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Room.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\RoomStatus.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\Request.java

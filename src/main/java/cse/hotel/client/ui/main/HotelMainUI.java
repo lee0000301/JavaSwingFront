@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import cse.hotel.client.ui.room.RoomUI;
 import cse.hotel.client.ui.food.FoodUI;
 import cse.hotel.client.ui.customer.CustomerUI;
+import cse.hotel.client.ui.reservation.ReservationUI;
 
 
 public class HotelMainUI extends JFrame {
@@ -81,8 +82,8 @@ public class HotelMainUI extends JFrame {
         new RoomUI().setVisible(true);
     }
      private void handleReservationManagement(ActionEvent e) {
-        // RoomUI 객실 관리 모듈 실행
-//        new ReservationUI().setVisible(true);
+        // Reservation 객실 관리 모듈 실행
+        new ReservationUI().setVisible(true);
     }
      private void handleCustomerManagement(ActionEvent e) {
         // RoomUI 객실 관리 모듈 실행

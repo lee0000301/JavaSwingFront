@@ -7,4 +7,4 @@ public enum RoomStatus implements Serializable {
     OCCUPIED, 
     CLEANING, 
     RESERVED; 
-}
+} 

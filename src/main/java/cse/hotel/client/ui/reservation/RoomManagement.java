@@ -3,22 +3,31 @@ package cse.hotel.client.ui.reservation;
 import javax.swing.JOptionPane;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import cse.hotel.client.network.HotelClient;
+import cse.hotel.common.packet.Request;
+import cse.hotel.common.packet.Response;
 
 public class RoomManagement extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RoomManagement.class.getName());
     private String currentStatus;
+    private String roomNo; // 방 번호 저장용 (서버 전송 시 필요)
+    
+    private Runnable refreshCallback; // 부모 창 새로고침할 함수 저장 변수
     
     public RoomManagement(String reservationNo, String customerName, 
                           String checkInDate, String checkOutDate, 
-                          String roomNo, String status, String roomType) {
+                          String roomNo, String status, String roomType,
+                          Runnable callback) {
+        
+        this.refreshCallback = callback;
 
         initComponents(); // UI 초기화
         
-        
+        // 멤버 변수 초기화
+        this.roomNo = roomNo;
+        this.currentStatus = status;
 
-        jButton4.addActionListener(evt -> handleSave());
-        
         // 텍스트 필드에 전달받은 값 세팅
         jTextField7.setText(reservationNo); // 예약 번호
         jTextField1.setText(customerName);  // 고객명
@@ -28,29 +37,30 @@ public class RoomManagement extends javax.swing.JFrame {
         jTextField6.setText(roomType);      // 객실 타입
         
         // 변경 불가 필드 설정
-        jTextField7.setEditable(false); // 예약 번호
-        jTextField4.setEditable(false); // 객실 번호
-        jTextField6.setEditable(false); // 객실 타입
+        jTextField7.setEditable(false);
+        jTextField4.setEditable(false);
+        jTextField6.setEditable(false);
+        jTextField1.setEditable(false);
+        jTextField3.setEditable(false);
+        jTextField5.setEditable(false);
         
-        // 체크인 로직 구현
-        this.currentStatus = status; // 전달받은 상태를 멤버 변수에 저장
-        updateCheckInButtonState(); // 상태에 따라 버튼/라벨 UI 업데이트
+        // [핵심] 상태에 따라 버튼 모양 초기화
+        updateStatusButtonState(); 
 
-        // 체크인 버튼(jButton2)에 클릭 리스너 추가
-        jButton2.addActionListener(evt -> handleCheckIn());
+        // 버튼 리스너 연결
+        jButton4.addActionListener(evt -> handleSave());
         
-        // 기본 X 버튼 동작 안하게 설정
+        // [핵심] 상태 변경 버튼 (체크인/체크아웃/청소)
+        jButton2.addActionListener(evt -> handleStatusButtonAction());
+        
+        // 닫기 설정
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-
-        // X 버튼을 누르는 이벤트(windowClosing)를 우리가 가로채서
-        //      직접 만든 closeWindow() 메서드를 호출하도록 설정
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                closeWindow(); // 팝업창 띄우는 공통 메서드 호출
+                closeWindow(); 
             }
         });
-
     }
 
     
@@ -354,21 +364,99 @@ public class RoomManagement extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton4ActionPerformed
 
-    private void handleSave() {
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                "저장하시겠습니까?",
-                "저장 확인",
-                JOptionPane.YES_NO_OPTION);
+    private void updateStatusButtonState() {
+        switch (this.currentStatus) {
+            case "예약됨":
+                jButton2.setText("체크인");
+                jButton2.setEnabled(true);
+                jButton2.setBackground(new java.awt.Color(204, 255, 204)); 
+                break;
+            case "점유중":
+                jButton2.setText("체크아웃");
+                jButton2.setEnabled(true);
+                jButton2.setBackground(new java.awt.Color(255, 204, 204)); 
+                break;
+            case "청소중":
+                jButton2.setText("청소완료");
+                jButton2.setEnabled(true);
+                jButton2.setBackground(new java.awt.Color(204, 229, 255)); 
+                break;
+            case "빈 객실":
+                jButton2.setText("-");
+                jButton2.setEnabled(false);
+                jButton2.setBackground(java.awt.Color.LIGHT_GRAY);
+                break;
+            default:
+                jButton2.setText("상태 불명");
+                jButton2.setEnabled(false);
+                break;
+        }
+    }
 
+    // --- 버튼 클릭 시 상태 변경 (서버 통신) ---
+    private void handleStatusButtonAction() {
+        String nextCommand = "";
+        String confirmMsg = "";
+        
+        if (this.currentStatus.equals("예약됨")) {
+            nextCommand = "CHECK_IN";
+            confirmMsg = "체크인을 진행하시겠습니까?";
+        } else if (this.currentStatus.equals("점유중")) {
+            nextCommand = "CHECK_OUT";
+            confirmMsg = "체크아웃을 진행하시겠습니까?";
+        } else if (this.currentStatus.equals("청소중")) {
+            nextCommand = "FINISH_CLEANING";
+            confirmMsg = "청소를 완료하고 '빈 객실'로 변경하시겠습니까?";
+        } else {
+            return;
+        }
+
+        int result = JOptionPane.showConfirmDialog(this, confirmMsg, "상태 변경", JOptionPane.YES_NO_OPTION);
+        
         if (result == JOptionPane.YES_OPTION) {
-            // TODO: 여기에 실제 저장 로직을 구현해야 합니다.
-            // (예: 변경된 고객명, 날짜, 그리고 'this.currentStatus' 값을
-            //  ReservationUI 테이블 모델이나 DB에 업데이트)
+            try {
+                int roomNumInt = Integer.parseInt(this.roomNo);
+                Request request = new Request(nextCommand, roomNumInt);
+                Response response = HotelClient.sendRequest(request);
 
-            System.out.println("저장 로직 실행됨 (새 상태: " + this.currentStatus + ")");
+                if (response.isSuccess()) {
+                    // 성공 시 내부 상태 변경
+                    if (this.currentStatus.equals("예약됨")) {
+                        this.currentStatus = "점유중";
+                    } else if (this.currentStatus.equals("점유중")) {
+                        this.currentStatus = "청소중";
+                    } else if (this.currentStatus.equals("청소중")) {
+                        this.currentStatus = "빈 객실";
+                    }
+                    
+                    updateStatusButtonState(); // 버튼 UI 갱신
+                    JOptionPane.showMessageDialog(this, response.getMessage());
+                    
+                    // ★★★ [핵심] 부모 창(ReservationUI) 새로고침 실행 ★★★
+                    if (this.refreshCallback != null) {
+                        this.refreshCallback.run();
+                    }
+                    
+                } else {
+                    JOptionPane.showMessageDialog(this, "요청 실패: " + response.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
+                }
 
-            this.dispose(); // 저장이 완료되면 창 닫기
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "통신 오류: " + e.getMessage());
+            }
+        }
+    }
+    
+    // --- 저장 버튼 ---
+    private void handleSave() {
+        int result = JOptionPane.showConfirmDialog(this, "저장하시겠습니까?", "저장 확인", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            // 저장 로직 수행 후에도 새로고침
+            if (this.refreshCallback != null) {
+                this.refreshCallback.run();
+            }
+            this.dispose();
         }
     }
     

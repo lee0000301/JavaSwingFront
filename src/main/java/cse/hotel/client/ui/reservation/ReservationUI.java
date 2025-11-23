@@ -51,10 +51,7 @@ public ReservationUI() {
         initComponents();
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // -----------------------------------------------------------
-        // [Step 1] 테이블 모델(model) 초기화 (가장 중요!)
-        // loadData()보다 반드시 먼저 실행되어야 합니다.
-        // -----------------------------------------------------------
+        // 테이블 모델 초기화 
         DefaultTableModel oldModel = (DefaultTableModel) jTable2.getModel();
         
         // 원본 데이터 구조 가져오기
@@ -66,7 +63,7 @@ public ReservationUI() {
 
         // '편집 불가능한' 새 모델을 생성하여 멤버 변수 model에 할당
         model = new DefaultTableModel(data, columnNames) {
-            // 컬럼별 데이터 타입 정의 (정렬 기능을 위해 필수)
+            // 컬럼별 데이터 타입 정의
             Class[] types = new Class [] {
                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.Object.class
             };
@@ -120,9 +117,15 @@ public ReservationUI() {
                         String roomType      = (String) model.getValueAt(modelRow, 6);
 
                         // 상세 창 띄우기
+                        // [수정] 마지막에 람다식 () -> { ... } 추가!
                         RoomManagement detailWindow = new RoomManagement(
-                            reservationNo, customerName, checkInDate, 
-                            checkOutDate, roomNo, status, roomType 
+                        reservationNo, customerName, checkInDate, 
+                        checkOutDate, roomNo, status, roomType,
+                            () -> { 
+                                // 창이 닫히거나 저장하면 이 코드가 실행됨
+                                loadData();          // 1. 서버에서 데이터 다시 가져오기
+                                refreshRoomStatus(); // 2. 방 버튼 색깔 다시 칠하기
+                            }
                         );
                         detailWindow.setLocationRelativeTo(ReservationUI.this);
                         detailWindow.setVisible(true);
@@ -727,10 +730,14 @@ public ReservationUI() {
         String status        = (String) model.getValueAt(modelRow, 5); // 상태
         String roomType      = (String) model.getValueAt(modelRow, 6); // [7번째] 타입
 
-        // 5. [중요] 7개 인자를 모두 전달하며 RoomManagement 창 생성
+        // 새로고침 로직
         RoomManagement detailWindow = new RoomManagement(
             reservationNo, customerName, checkInDate,  
-            checkOutDate, roomNo, status, roomType // 7개 전달
+            checkOutDate, roomNo, status, roomType,
+            () -> {
+                loadData();
+                refreshRoomStatus();
+            }
         );
         
         detailWindow.setLocationRelativeTo(this); // 부모 창 기준 정가운데 정렬
@@ -749,35 +756,36 @@ public ReservationUI() {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        int viewRow = jTable2.getSelectedRow();
+int viewRow = jTable2.getSelectedRow();
         if (viewRow < 0) {
             JOptionPane.showMessageDialog(this, "취소할 예약을 선택해주세요.");
             return; 
         }
 
         int modelRow = jTable2.convertRowIndexToModel(viewRow);
-        String reservationNo = (String) model.getValueAt(modelRow, 0); // 예약번호(ID)
+        String reservationNo = (String) model.getValueAt(modelRow, 0); // 예약번호
+        String status = (String) model.getValueAt(modelRow, 5); // 상태
 
-        int result = javax.swing.JOptionPane.showConfirmDialog(
-                this,
-                "정말로 예약을 취소하시겠습니까?",
-                "확인",
-                javax.swing.JOptionPane.YES_NO_OPTION
-        );
+        // 이미 체크인 된 방이나 지난 예약은 취소 불가 처리
+        if (status.equals("점유중") || status.equals("체크아웃")) {
+             JOptionPane.showMessageDialog(this, "이미 체크인되었거나 종료된 예약은 취소할 수 없습니다.", "취소 불가", JOptionPane.ERROR_MESSAGE);
+             return;
+        }
 
-        if (result == javax.swing.JOptionPane.YES_OPTION) { 
+        int result = JOptionPane.showConfirmDialog(this, "정말로 예약을 취소하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
+
+        if (result == JOptionPane.YES_OPTION) { 
             try {
-                // [수정] 서버에 취소 요청 전송
+                // 서버에 취소 요청 전송 (ID 기준)
                 Request request = new Request("CANCEL_RESERVATION", reservationNo);
                 Response response = HotelClient.sendRequest(request);
 
                 if (response.isSuccess()) {
-                     // 성공 시에만 UI 업데이트
-                     model.removeRow(modelRow);
-                     refreshRoomStatus(); // 방 버튼 색상도 갱신
-                     JOptionPane.showMessageDialog(this, "예약이 취소되었습니다.");
+                      model.removeRow(modelRow);
+                      refreshRoomStatus(); // 버튼 색상 갱신
+                      JOptionPane.showMessageDialog(this, "예약이 정상적으로 취소되었습니다.");
                 } else {
-                     JOptionPane.showMessageDialog(this, "취소 실패: " + response.getMessage());
+                      JOptionPane.showMessageDialog(this, "취소 실패: " + response.getMessage());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -913,10 +921,14 @@ public ReservationUI() {
                 String status        = (String) model.getValueAt(i, 5);
                 String roomType      = (String) model.getValueAt(i, 6);
 
-                // 상세 창 띄우기 (더블 클릭 했을 때랑 똑같이)
+                // [수정] 여기도 추가!
                 RoomManagement detailWindow = new RoomManagement(
                     reservationNo, customerName, checkInDate, 
-                    checkOutDate, tableRoomNo, status, roomType
+                    checkOutDate, tableRoomNo, status, roomType,
+                    () -> {
+                        loadData();
+                        refreshRoomStatus();
+                    }
                 );
                 detailWindow.setLocationRelativeTo(this);
                 detailWindow.setVisible(true);

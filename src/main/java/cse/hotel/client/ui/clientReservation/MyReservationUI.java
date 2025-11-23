@@ -111,7 +111,7 @@ public class MyReservationUI extends JFrame {
 
     private void cancelReservation(String resId) {
         try {
-            Request req = new Request("CANCEL_RESERVATION", resId);
+            Request req = new Request("CANCEL_CLIENT_RESERVATION", resId);
             Response res = HotelClient.sendRequest(req);
             
             if (res.isSuccess()) {

@@ -7,13 +7,22 @@ import cse.hotel.client.ui.room.RoomUI;
 import cse.hotel.client.ui.food.FoodUI;
 import cse.hotel.client.ui.customer.CustomerUI;
 import cse.hotel.client.ui.reservation.ReservationUI;
+import cse.hotel.common.model.User;
 
 
 public class HotelMainUI extends JFrame {
+    private User user;
 
-    public HotelMainUI() {
+    public HotelMainUI(User user) {
+        this.user = user;
+        
         // 창 기본 설정
-        setTitle("⭐ 호텔 관리 시스템 - 메인 화면 ⭐");
+        if (user.isAdmin()) {
+            setTitle("호텔 관리 시스템 [관리자 모드] - " + user.getId());
+        } else {
+            setTitle("호텔 관리 시스템 [직원 모드] - " + user.getId());
+            // 여기서 관리자 전용 버튼을 비활성화(setEnabled(false)) 하거나 숨길 수 있음
+        }
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         // 7개의 버튼과 제목 레이블을 효율적으로 배치하기 위해 크기 조정
@@ -66,6 +75,8 @@ public class HotelMainUI extends JFrame {
         
         // 종료 버튼 액션
         btnExit.addActionListener(e -> System.exit(0));
+        
+        setVisible(true);
     }
 
     // --- 이벤트 핸들러 구현 ---
@@ -101,8 +112,4 @@ public class HotelMainUI extends JFrame {
             "⚠️ 모듈 준비 중", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // --- 메인 메서드 ---
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new HotelMainUI().setVisible(true));
-    }
 }

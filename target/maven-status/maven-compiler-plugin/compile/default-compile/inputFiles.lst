@@ -5,6 +5,7 @@ D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\custo
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\CustomerFormDialog.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\CustomerManagerGUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\food\FoodUI.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\login\LoginUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\CustomerMainUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\HotelMainUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\HotelManagementSystem.java
@@ -21,5 +22,6 @@ D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Fo
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Reservation.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Room.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\RoomStatus.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\User.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\Request.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\Response.java

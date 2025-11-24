@@ -703,7 +703,7 @@ public ReservationUI() {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // 1. 현재 테이블에서 선택된 행의 인덱스(view)를 가져옵니다.
         int viewRow = jTable2.getSelectedRow();
-        
+         
         // 2. 선택된 행이 있는지 확인합니다.
         if (viewRow < 0) {
             // 선택된 행이 없다면, 사용자에게 알림 팝업을 띄웁니다.

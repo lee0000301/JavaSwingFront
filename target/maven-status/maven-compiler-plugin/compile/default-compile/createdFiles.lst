@@ -5,6 +5,7 @@ cse\hotel\common\model\Reservation.class
 cse\hotel\client\ui\main\CustomerMainUI.class
 cse\hotel\client\ui\reservation\RoomManagement$3.class
 cse\hotel\common\exception\DuplicateIdException.class
+cse\hotel\client\ui\Admin\AdminUI.class
 cse\hotel\client\ui\reservation\ReservationUI$2.class
 cse\hotel\common\exception\DataNotFoundException.class
 cse\hotel\common\model\RoomStatus.class
@@ -17,17 +18,20 @@ cse\hotel\client\ui\reservation\ReservationUI$4.class
 cse\hotel\client\ui\reservation\ReservationUI$12.class
 cse\hotel\client\ui\room\RoomUI.class
 cse\hotel\client\ui\reservation\RoomManagement$5.class
+cse\hotel\common\packet\UserManagementData.class
 cse\hotel\client\ui\clientReservation\ClientReservationUI.class
 cse\hotel\client\ui\login\LoginUI$1.class
 cse\hotel\common\packet\Response.class
 cse\hotel\client\ui\clientReservation\MyReservationUI.class
 cse\hotel\client\ui\reservation\NewReservationDialog$5.class
 cse\hotel\client\ui\reservation\ReservationUI$1.class
+cse\hotel\common\packet\UserManagementData$Action.class
 cse\hotel\client\ui\login\LoginUI$4.class
 cse\hotel\client\ui\reservation\ReservationUI$8.class
 cse\hotel\client\ui\reservation\RoomManagement.class
 cse\hotel\client\ui\reservation\NewReservationDialog$2.class
 cse\hotel\client\ui\reservation\RoomManagement$2.class
+cse\hotel\common\packet\UserManagementPacket.class
 cse\hotel\client\ui\login\LoginUI$2.class
 cse\hotel\client\ui\reservation\RoomManagement$1.class
 cse\hotel\client\ui\reservation\ReservationUI$3.class
@@ -49,6 +53,7 @@ cse\hotel\client\ui\customer\CustomerUI$1.class
 cse\hotel\common\model\Food.class
 cse\hotel\client\ui\reservation\NewReservationDialog$3.class
 cse\hotel\client\ui\clientReservation\ClientReservationUI$1.class
+cse\hotel\common\packet\UserManagementPacket$Action.class
 cse\hotel\client\ui\main\HotelMainUI.class
 cse\hotel\common\model\User.class
 cse\hotel\client\ui\customer\CustomerUI.class

@@ -7,6 +7,7 @@ import cse.hotel.client.ui.room.RoomUI;
 import cse.hotel.client.ui.food.FoodUI;
 import cse.hotel.client.ui.customer.CustomerUI;
 import cse.hotel.client.ui.reservation.ReservationUI;
+import cse.hotel.client.ui.Admin.AdminUI;
 import cse.hotel.common.model.User;
 
 
@@ -66,10 +67,10 @@ public class HotelMainUI extends JFrame {
         btnRoom.addActionListener(this::handleRoomManagement);
         btnReservation.addActionListener(this::handleReservationManagement);
         btnCustomer.addActionListener(this::handleCustomerManagement);
+        btnUser.addActionListener(this::handleAdminUIManagement);
         
         // 미구현 모듈들은 알림 메시지 연결
-        
-        btnUser.addActionListener(this::showNotImplementedAlert);
+       
         btnRoomService.addActionListener(this::showNotImplementedAlert);
         btnReport.addActionListener(this::showNotImplementedAlert);
         
@@ -100,6 +101,12 @@ public class HotelMainUI extends JFrame {
         // RoomUI 객실 관리 모듈 실행
         new CustomerUI().setVisible(true);
     }
+    private void handleAdminUIManagement(ActionEvent e) {
+        // 사용자 관리 모듈 실행
+        new AdminUI(this.user).setVisible(true);
+    }
+     
+     
     /**
      * 미구현 모듈 클릭 시 알림 메시지 표시
      */

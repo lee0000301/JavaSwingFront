@@ -1,4 +1,5 @@
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\network\HotelClient.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\Admin\AdminUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\clientReservation\ClientReservationUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\clientReservation\MyReservationUI.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\client\ui\customer\CustomerUI.java
@@ -25,3 +26,5 @@ D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\Ro
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\model\User.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\Request.java
 D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\Response.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\UserManagementData.java
+D:\JavaSwingProject (합)\JavaSwingFront\src\main\java\cse\hotel\common\packet\UserManagementPacket.java

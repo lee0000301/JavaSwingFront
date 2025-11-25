@@ -4,6 +4,7 @@ C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\cl
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\customer\CustomerUI.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\CustomerFormDialog.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\CustomerManagerGUI.java
+C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\food\FoodOrderUI.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\food\FoodUI.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\CustomerMainUI.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\client\ui\main\HotelMainUI.java
@@ -18,6 +19,7 @@ C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\excep
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\ClientReservation.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\Customer.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\Food.java
+C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\FoodOrder.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\Reservation.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\Room.java
 C:\Users\alex0\Desktop\Hotel\JavaSwingFront\src\main\java\cse\hotel\common\model\RoomStatus.java

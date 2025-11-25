@@ -55,7 +55,7 @@ public class ClientReservationUI extends JFrame {
         txtCheckOut = new JTextField(LocalDate.now().plusDays(1).toString());
 
         // [추가] 객실 타입 선택
-        String[] types = {"전체", "Single", "Double", "Suite"};
+        String[] types = {"전체", "스탠다드", "디럭스", "스위트", "패밀리"};
         comboRoomType = new JComboBox<>(types);
 
         // [추가] 인원수 입력

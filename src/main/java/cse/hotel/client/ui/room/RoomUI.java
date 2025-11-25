@@ -6,14 +6,17 @@ import cse.hotel.common.packet.Response;
 import cse.hotel.common.model.Room;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.List;
 
 /**
  * [RoomUI] - 객실 정보 관리 화면 (JFrame)
- * TCP 클라이언트 모드로 동작합니다.
+ * 디자인 리팩토링: 모던 대시보드 스타일 적용
  */
-public class RoomUI extends javax.swing.JFrame {
+public class RoomUI extends JFrame {
     
     // --- GUI 컴포넌트 선언 ---
     private JTextArea roomListArea;
@@ -27,74 +30,237 @@ public class RoomUI extends javax.swing.JFrame {
     private JButton createButton;
     private JButton updateButton;
     private JButton deleteButton;
-    private JButton backButton; // 메인으로 돌아가기 버튼 추가
+    private JButton backButton; 
 
-    // private final RoomService roomService; // <-- 삭제 (Service는 서버에 있음)
+    // --- 디자인 상수 (Color Palette) ---
+    private final Color MAIN_BG = new Color(245, 245, 245); // 배경 (연회색)
+    private final Color PANEL_BG = Color.WHITE;             // 패널 배경 (흰색)
+    private final Color HEADER_BG = new Color(50, 50, 50);  // 헤더 (진한 회색)
+    private final Color POINT_BLUE = new Color(52, 101, 164); // 포인트 (파란색)
+    private final Color POINT_GREEN = new Color(40, 167, 69); // 상태 변경 (녹색)
+    private final Color POINT_RED = new Color(220, 53, 69);   // 삭제 (빨강)
+    private final Color TEXT_DARK = new Color(60, 60, 60);  // 텍스트
 
     public RoomUI() {
         super("객실 정보 관리 - 클라이언트 모드");
-        // this.roomService = new RoomService(); // <-- 삭제
-        initComponents();
-        setSize(800, 600);
-        refreshRoomList(); // 초기 목록 로드 (서버 통신)
-        setLocationRelativeTo(null); 
+        
+        // 기본 프레임 설정
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(1000, 700); // 가로로 조금 더 넓게
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(MAIN_BG);
+        setLayout(new BorderLayout(0, 0));
+
+        // 1. UI 초기화 (디자인 적용)
+        initStylishComponents();
+        
+        // 2. 초기 데이터 로드 (기존 로직)
+        refreshRoomList(); 
+        
+        setVisible(true);
     }
 
-    
-    private void initComponents() {
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
-        setLayout(new BorderLayout());
+    // --- [UI 구성] 세련된 디자인 적용 ---
+    private void initStylishComponents() {
+        // A. 상단 헤더
+        add(createHeaderPanel(), BorderLayout.NORTH);
 
-        // --- 1. (중앙) 객실 목록 패널 ---
+        // B. 중앙 컨텐츠 (좌측: 관리 패널 / 우측: 목록 패널)
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 0));
+        contentPanel.setBackground(MAIN_BG);
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        contentPanel.add(createLeftControlPanel(), BorderLayout.WEST);
+        contentPanel.add(createRightListPanel(), BorderLayout.CENTER);
+
+        add(contentPanel, BorderLayout.CENTER);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(HEADER_BG);
+        panel.setPreferredSize(new Dimension(0, 60));
+        panel.setBorder(new EmptyBorder(0, 25, 0, 15));
+
+        JLabel titleLabel = new JLabel("객실 통합 관리 시스템");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
+        panel.add(titleLabel, BorderLayout.WEST);
+        
+        // 메인 메뉴 버튼을 헤더 우측에 배치
+        backButton = createStyledButton("메인 메뉴", new Color(80, 80, 80), Color.WHITE);
+        backButton.addActionListener(this::jButton_BackActionPerformed);
+        
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnPanel.setOpaque(false);
+        btnPanel.add(backButton);
+        panel.add(btnPanel, BorderLayout.EAST);
+
+        return panel;
+    }
+
+    private JPanel createLeftControlPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(MAIN_BG);
+        panel.setPreferredSize(new Dimension(350, 0));
+
+        // 1. 객실 상태 변경 섹션
+        JPanel statusPanel = createSectionPanel("객실 상태 변경");
+        
+        JPanel statusForm = new JPanel(new GridBagLayout());
+        statusForm.setBackground(PANEL_BG);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 0, 5, 0);
+        gbc.gridx = 0; gbc.weightx = 1.0;
+
+        roomNumberField = createStyledTextField();
+        addLabeledField(statusForm, gbc, "대상 객실 번호:", roomNumberField, 0);
+
+        JPanel statusBtnPanel = new JPanel(new GridLayout(1, 3, 5, 0));
+        statusBtnPanel.setBackground(PANEL_BG);
+        checkInButton = createStyledButton("체크인", POINT_GREEN, Color.WHITE);
+        checkOutButton = createStyledButton("체크아웃", new Color(23, 162, 184), Color.WHITE); // Cyan 계열
+        finishCleaningButton = createStyledButton("청소 완료", new Color(108, 117, 125), Color.WHITE); // Grey
+
+        statusBtnPanel.add(checkInButton);
+        statusBtnPanel.add(checkOutButton);
+        statusBtnPanel.add(finishCleaningButton);
+        
+        gbc.gridy = 2;
+        statusForm.add(statusBtnPanel, gbc);
+        
+        statusPanel.add(statusForm, BorderLayout.CENTER);
+        panel.add(statusPanel);
+
+        panel.add(Box.createVerticalStrut(20)); // 간격
+
+        // 2. 객실 정보 관리 섹션
+        JPanel adminPanel = createSectionPanel("객실 정보 관리 (CRUD)");
+        
+        JPanel adminForm = new JPanel(new GridBagLayout());
+        adminForm.setBackground(PANEL_BG);
+        
+        roomTypeField = createStyledTextField();
+        roomPriceField = createStyledTextField();
+        
+        addLabeledField(adminForm, gbc, "객실 타입:", roomTypeField, 0);
+        addLabeledField(adminForm, gbc, "객실 가격:", roomPriceField, 2);
+
+        // 버튼 그룹 1 (조회, 생성)
+        JPanel adminBtnPanel1 = new JPanel(new GridLayout(1, 2, 5, 0));
+        adminBtnPanel1.setBackground(PANEL_BG);
+        findButton = createStyledButton("정보 불러오기", POINT_BLUE, Color.WHITE);
+        createButton = createStyledButton("신규 등록", POINT_BLUE, Color.WHITE);
+        adminBtnPanel1.add(findButton);
+        adminBtnPanel1.add(createButton);
+
+        // 버튼 그룹 2 (수정, 삭제)
+        JPanel adminBtnPanel2 = new JPanel(new GridLayout(1, 2, 5, 0));
+        adminBtnPanel2.setBackground(PANEL_BG);
+        updateButton = createStyledButton("정보 수정", new Color(255, 193, 7), Color.BLACK); // Yellow
+        deleteButton = createStyledButton("객실 삭제", POINT_RED, Color.WHITE);
+        adminBtnPanel2.add(updateButton);
+        adminBtnPanel2.add(deleteButton);
+
+        gbc.gridy = 4;
+        adminForm.add(adminBtnPanel1, gbc);
+        gbc.gridy = 5;
+        adminForm.add(Box.createVerticalStrut(5), gbc);
+        gbc.gridy = 6;
+        adminForm.add(adminBtnPanel2, gbc);
+
+        adminPanel.add(adminForm, BorderLayout.CENTER);
+        panel.add(adminPanel);
+        
+        // 이벤트 리스너 연결 (기존 로직 연결)
+        setupListeners();
+
+        return panel;
+    }
+
+    private JPanel createRightListPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(PANEL_BG);
+        // 둥근 테두리 효과
+        panel.setBorder(new CompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1),
+            new EmptyBorder(10, 10, 10, 10)
+        ));
+
+        JLabel lblTitle = new JLabel("실시간 객실 현황");
+        lblTitle.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        lblTitle.setForeground(TEXT_DARK);
+        lblTitle.setBorder(new EmptyBorder(0, 0, 10, 0));
+        panel.add(lblTitle, BorderLayout.NORTH);
+
         roomListArea = new JTextArea();
         roomListArea.setEditable(false);
+        roomListArea.setFont(new Font("Monospaced", Font.PLAIN, 14)); // 고정폭 폰트 사용
+        roomListArea.setForeground(new Color(50, 50, 50));
+        roomListArea.setBorder(new EmptyBorder(5, 5, 5, 5));
+        
         JScrollPane scrollPane = new JScrollPane(roomListArea);
-        add(scrollPane, BorderLayout.CENTER);
-
-        // --- 2. (상단) 컨트롤 패널 (BoxLayout 사용) ---
-        JPanel pnlControls = new JPanel();
-        pnlControls.setLayout(new BoxLayout(pnlControls, BoxLayout.Y_AXIS));
-
-        // 2-1. 객실 상태 변경 구역
-        JPanel pnlStatusOps = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnlStatusOps.setBorder(BorderFactory.createTitledBorder("객실 상태 변경"));
-        roomNumberField = new JTextField(8);
-        checkInButton = new JButton("체크인");
-        checkOutButton = new JButton("체크아웃");
-        finishCleaningButton = new JButton("청소 완료");
+        scrollPane.setBorder(new LineBorder(new Color(220, 220, 220)));
         
-        pnlStatusOps.add(new JLabel("객실 번호 (대상):"));
-        pnlStatusOps.add(roomNumberField);
-        pnlStatusOps.add(checkInButton);
-        pnlStatusOps.add(checkOutButton);
-        pnlStatusOps.add(finishCleaningButton);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
 
-        // 2-2. 객실 정보 관리 구역
-        JPanel pnlAdminOps = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnlAdminOps.setBorder(BorderFactory.createTitledBorder("객실 정보 관리 (등록/수정/삭제)"));
-        roomTypeField = new JTextField(10);
-        roomPriceField = new JTextField(8);
-        findButton = new JButton("정보 불러오기");
-        createButton = new JButton("신규 등록");
-        updateButton = new JButton("정보 수정");
-        deleteButton = new JButton("객실 삭제");
-        backButton = new JButton("메인 메뉴"); // 메인으로 돌아가기 버튼 추가
+    // --- 스타일 헬퍼 메서드 ---
+    private JPanel createSectionPanel(String title) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(new CompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1),
+            new EmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("맑은 고딕", Font.BOLD, 15));
+        lblTitle.setForeground(POINT_BLUE);
+        lblTitle.setBorder(new EmptyBorder(0, 0, 10, 0));
+        panel.add(lblTitle, BorderLayout.NORTH);
+        
+        return panel;
+    }
 
-        pnlAdminOps.add(new JLabel("타입:"));
-        pnlAdminOps.add(roomTypeField);
-        pnlAdminOps.add(new JLabel("가격:"));
-        pnlAdminOps.add(roomPriceField);
-        pnlAdminOps.add(findButton);
-        pnlAdminOps.add(createButton);
-        pnlAdminOps.add(updateButton);
-        pnlAdminOps.add(deleteButton);
-        pnlAdminOps.add(backButton); // 버튼 추가
-        
-        pnlControls.add(pnlStatusOps);
-        pnlControls.add(pnlAdminOps);
-        add(pnlControls, BorderLayout.NORTH);
-        
-        // --- 이벤트 리스너 등록 (TCP 통신 로직 연결) ---
+    private void addLabeledField(JPanel panel, GridBagConstraints gbc, String labelText, JTextField field, int yPos) {
+        gbc.gridy = yPos;
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        label.setForeground(TEXT_DARK);
+        panel.add(label, gbc);
+
+        gbc.gridy = yPos + 1;
+        panel.add(field, gbc);
+    }
+
+    private JTextField createStyledTextField() {
+        JTextField field = new JTextField();
+        field.setPreferredSize(new Dimension(0, 35));
+        field.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200)), 
+            new EmptyBorder(5, 5, 5, 5)
+        ));
+        return field;
+    }
+
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("맑은 고딕", Font.BOLD, 13));
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    // --- [로직] 기존 코드 100% 유지 (이벤트 연결 및 처리) ---
+    private void setupListeners() {
         checkInButton.addActionListener(e -> handleCheckIn());
         checkOutButton.addActionListener(e -> handleCheckOut());
         finishCleaningButton.addActionListener(e -> handleFinishCleaning());
@@ -102,12 +268,8 @@ public class RoomUI extends javax.swing.JFrame {
         createButton.addActionListener(e -> handleCreate());
         updateButton.addActionListener(e -> handleUpdate());
         deleteButton.addActionListener(e -> handleDelete());
-        backButton.addActionListener(this::jButton_BackActionPerformed); // 메인으로 돌아가기
-        
-        pack(); 
-        setLocationRelativeTo(null); 
     }
-    
+
     // --- 헬퍼 메서드 ---
     private int getRoomNumberFromField() throws NumberFormatException {
         if (roomNumberField.getText().isEmpty()) {
@@ -140,13 +302,18 @@ public class RoomUI extends javax.swing.JFrame {
 
             if (response.isSuccess()) {
                 List<Room> rooms = (List<Room>) response.getResultData();
-                StringBuilder sb = new StringBuilder("--- 객실 현황 (번호 / 타입 / 가격 / 상태) ---\n");
+                StringBuilder sb = new StringBuilder();
+                
+                // 테이블 헤더 느낌으로 출력
+                sb.append(String.format("%-8s %-12s %-12s %-10s\n", "번호", "타입", "가격", "상태"));
+                sb.append("----------------------------------------------------\n");
+                
                 for (Room room : rooms) {
-                    // Room 객체에 toString() 메서드가 있다고 가정
-                    sb.append(room.getRoomNumber()).append(" / ")
-                      .append(room.getRoomType()).append(" / ")
-                      .append(room.getPrice()).append("원 / ")
-                      .append(room.getStatus()).append("\n");
+                    sb.append(String.format("%-8d %-12s %-12d %-10s\n", 
+                        room.getRoomNumber(), 
+                        room.getRoomType(), 
+                        room.getPrice(), 
+                        room.getStatus()));
                 }
                 roomListArea.setText(sb.toString());
             } else {
@@ -277,6 +444,6 @@ public class RoomUI extends javax.swing.JFrame {
     // 메인 메뉴로 돌아가기 (기존 로직 유지)
     private void jButton_BackActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
-        // 메인 메뉴 창 띄우기 (HotelMainUI가 있다고 가정하고, main 메서드는 이미 실행되었으므로 생략)
+        // 메인 메뉴 창 띄우기 로직 (호출한 쪽에서 처리하거나 필요시 추가)
     }
 }

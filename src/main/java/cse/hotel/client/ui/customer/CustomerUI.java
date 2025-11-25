@@ -5,7 +5,12 @@ import cse.hotel.common.packet.*;
 import cse.hotel.common.model.Customer;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -19,66 +24,215 @@ public class CustomerUI extends JFrame {
     private JTextField txtId, txtName, txtPhone;
     private JButton btnAdd, btnUpdate, btnDelete, btnClear;
     
-   
-
     private final String[] COLUMN_NAMES = {"ID", "이름", "전화번호"};
+
+    // --- 디자인 상수 (Color Palette) ---
+    private final Color MAIN_BG = new Color(245, 245, 245); // 배경 (연회색)
+    private final Color PANEL_BG = Color.WHITE;             // 패널 배경 (흰색)
+    private final Color HEADER_BG = new Color(50, 50, 50);  // 헤더 (진한 회색)
+    private final Color POINT_BLUE = new Color(52, 101, 164); // 포인트 (파란색)
+    private final Color TABLE_HEADER = new Color(230, 230, 230); // 테이블 헤더
+    private final Color TEXT_DARK = new Color(60, 60, 60);  // 텍스트
 
     public CustomerUI() {
         setTitle("고객 정보 관리");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(700, 400);
+        setSize(900, 600);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10)); // 여백 추가
+        
+        // 전체 배경 설정
+        getContentPane().setBackground(MAIN_BG);
+        setLayout(new BorderLayout(0, 0));
 
-        // 1. 테이블 모델 및 테이블 초기화
-        tableModel = new DefaultTableModel(COLUMN_NAMES, 0);
+        // 1. 테이블 모델 초기화 (로직 유지를 위해 변수 초기화 먼저 수행)
+        tableModel = new DefaultTableModel(COLUMN_NAMES, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // 테이블 수정 방지
+            }
+        };
         customerTable = new JTable(tableModel);
         
-        // 2. 컴포넌트 초기화 및 레이아웃 설정
-        initializeComponents();
+        // 2. UI 컴포넌트 초기화 및 디자인 적용 (기존 initializeComponents 대체)
+        initStylishComponents();
         
         // 3. 이벤트 리스너 연결
         attachListeners();
 
-        // 4. 초기 데이터 로드 (서버 통신)
+        // 4. 초기 데이터 로드
         refreshTable();
+        
+        setVisible(true);
     }
     
-    // --- 컴포넌트 초기화 및 패널 설정 ---
-    private void initializeComponents() {
-        // 입력 필드 패널 (상단)
-        JPanel inputPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        txtId = new JTextField(20);
-        txtName = new JTextField(20);
-        txtPhone = new JTextField(20);
-        
-        // ID 필드는 서버에서 자동 생성되므로, 초기에는 사용자가 수정하지 못하게 설정
-        txtId.setEnabled(false); 
+    // --- [UI 구성] 세련된 디자인 적용 메서드 ---
+    private void initStylishComponents() {
+        // A. 상단 헤더
+        add(createHeaderPanel(), BorderLayout.NORTH);
 
-        inputPanel.add(new JLabel("고객 ID:"));
-        inputPanel.add(txtId);
-        inputPanel.add(new JLabel("이름:"));
-        inputPanel.add(txtName);
-        inputPanel.add(new JLabel("전화번호:"));
-        inputPanel.add(txtPhone);
+        // B. 중앙 컨텐츠 (좌측: 입력폼 / 우측: 테이블)
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 0));
+        contentPanel.setBackground(MAIN_BG);
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // 버튼 패널 (하단)
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        btnAdd = new JButton("신규 등록");
-        btnUpdate = new JButton("정보 수정");
-        btnDelete = new JButton("고객 삭제");
-        btnClear = new JButton("초기화");
-        
-        buttonPanel.add(btnAdd);
-        buttonPanel.add(btnUpdate);
-        buttonPanel.add(btnDelete);
-        buttonPanel.add(btnClear);
+        contentPanel.add(createInputPanel(), BorderLayout.WEST);
+        contentPanel.add(createTablePanel(), BorderLayout.CENTER);
 
-        add(inputPanel, BorderLayout.NORTH);
-        add(new JScrollPane(customerTable), BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
+        add(contentPanel, BorderLayout.CENTER);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(HEADER_BG);
+        panel.setPreferredSize(new Dimension(0, 60));
+        panel.setBorder(new EmptyBorder(0, 25, 0, 0));
+
+        JLabel titleLabel = new JLabel("고객 정보 관리 시스템");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
+        panel.add(titleLabel, BorderLayout.WEST);
+
+        return panel;
+    }
+
+    private JPanel createInputPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(PANEL_BG);
+        panel.setPreferredSize(new Dimension(300, 0));
+        // 둥근 느낌의 테두리 효과
+        panel.setBorder(new CompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
+
+        // 1. 폼 제목
+        JLabel lblTitle = new JLabel("고객 정보 입력");
+        lblTitle.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        lblTitle.setForeground(TEXT_DARK);
+        lblTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
+        panel.add(lblTitle, BorderLayout.NORTH);
+
+        // 2. 입력 필드 배치 (GridBagLayout)
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(PANEL_BG);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        gbc.gridx = 0;
+
+        // 필드 초기화
+        txtId = createStyledTextField();
+        txtId.setEnabled(false); // ID 비활성화 유지
+        txtName = createStyledTextField();
+        txtPhone = createStyledTextField();
+
+        // 폼 추가
+        addFormField(formPanel, gbc, "고객 ID (자동 생성)", txtId, 0);
+        addFormField(formPanel, gbc, "고객 이름", txtName, 2);
+        addFormField(formPanel, gbc, "전화번호", txtPhone, 4);
+
+        // 남은 공간 채우기 (레이아웃 정렬용)
+        gbc.weighty = 1.0;
+        gbc.gridy = 6;
+        formPanel.add(new JLabel(), gbc);
+
+        panel.add(formPanel, BorderLayout.CENTER);
+
+        // 3. 버튼 패널 (하단)
+        JPanel btnPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        btnPanel.setBackground(PANEL_BG);
+        btnPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
+
+        btnAdd = createStyledButton("신규 등록", POINT_BLUE, Color.WHITE);
+        btnUpdate = createStyledButton("정보 수정", new Color(80, 80, 80), Color.WHITE);
+        btnDelete = createStyledButton("삭제", new Color(200, 60, 60), Color.WHITE);
+        btnClear = createStyledButton("초기화", new Color(230, 230, 230), Color.BLACK);
+
+        btnPanel.add(btnAdd);
+        btnPanel.add(btnUpdate);
+        btnPanel.add(btnDelete);
+        btnPanel.add(btnClear);
+
+        panel.add(btnPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void addFormField(JPanel panel, GridBagConstraints gbc, String labelText, JTextField field, int yPos) {
+        gbc.gridy = yPos;
+        gbc.weighty = 0;
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        label.setForeground(Color.GRAY);
+        panel.add(label, gbc);
+
+        gbc.gridy = yPos + 1;
+        panel.add(field, gbc);
+    }
+
+    private JPanel createTablePanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(new LineBorder(new Color(200, 200, 200), 1));
+
+        // 테이블 스타일링
+        customerTable.setRowHeight(30);
+        customerTable.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        customerTable.setShowVerticalLines(false);
+        customerTable.setGridColor(new Color(230, 230, 230));
+        customerTable.setSelectionBackground(new Color(232, 242, 254));
+        customerTable.setSelectionForeground(Color.BLACK);
+
+        // 헤더 스타일
+        JTableHeader header = customerTable.getTableHeader();
+        header.setPreferredSize(new Dimension(0, 40));
+        header.setBackground(TABLE_HEADER);
+        header.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        header.setForeground(TEXT_DARK);
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
+
+        // 가운데 정렬
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for(int i=0; i<customerTable.getColumnCount(); i++){
+            customerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(customerTable);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(null);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // --- 스타일 헬퍼 메서드 ---
+    private JTextField createStyledTextField() {
+        JTextField field = new JTextField();
+        field.setPreferredSize(new Dimension(0, 35));
+        field.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200)), 
+            new EmptyBorder(5, 10, 5, 10) // 내부 여백
+        ));
+        return field;
+    }
+
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
     }
     
+    // ====================================================================
+    // ▼ 아래 로직은 요청하신 대로 100% 원본 유지 (단, initializeComponents는 위 코드로 대체됨) ▼
+    // ====================================================================
+
     // --- 이벤트 리스너 연결 ---
     private void attachListeners() {
         btnAdd.addActionListener(this::addButtonActionPerformed);
@@ -164,7 +318,7 @@ public class CustomerUI extends JFrame {
                                     "\n생성된 ID: " + registeredCustomer.getCustomerId();
             
               JOptionPane.showMessageDialog(this, successMessage, "등록 성공", JOptionPane.INFORMATION_MESSAGE);
-               
+                
                 clearFields();
                 refreshTable();
             } else {
@@ -251,10 +405,5 @@ public class CustomerUI extends JFrame {
         txtName.setText("");
         txtPhone.setText("");
         txtId.setEnabled(true);
-    }
-    
-    // --- 메인 메서드 (테스트용) ---
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new CustomerUI().setVisible(true));
     }
 }

@@ -29,6 +29,7 @@ cse\hotel\client\ui\main\CustomerMainUI$1.class
 cse\hotel\common\packet\UserManagementPacket.class
 cse\hotel\client\ui\login\LoginUI$2.class
 cse\hotel\client\ui\food\FoodUI.class
+cse\hotel\common\model\Payment.class
 cse\hotel\common\model\ClientReservation.class
 cse\hotel\client\ui\login\LoginUI$5.class
 cse\hotel\client\ui\login\LoginUI$6.class
@@ -42,6 +43,7 @@ cse\hotel\common\model\Customer.class
 cse\hotel\client\ui\customer\CustomerUI$1.class
 cse\hotel\common\model\Food.class
 cse\hotel\common\model\FoodOrder.class
+cse\hotel\client\ui\payment\PaymentUI.class
 cse\hotel\client\ui\clientReservation\ClientReservationUI$1.class
 cse\hotel\common\packet\UserManagementPacket$Action.class
 cse\hotel\client\ui\Admin\AdminUI$1.class

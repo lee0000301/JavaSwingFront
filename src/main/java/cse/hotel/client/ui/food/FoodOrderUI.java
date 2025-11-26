@@ -271,6 +271,7 @@ public class FoodOrderUI extends JFrame {
             orderData.put("foodName", foodName);
             orderData.put("count", count);
             orderData.put("customerId", customerId);
+            orderData.put("totalPrice", totalPrice);
             
             // 서버 전송
             Request req = new Request("ORDER_FOOD", orderData);

@@ -6,7 +6,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.HashMap;
+
 
 import cse.hotel.common.packet.Request;
 import cse.hotel.common.packet.Response;
@@ -15,6 +15,7 @@ import cse.hotel.client.ui.clientReservation.ClientReservationUI;
 import cse.hotel.client.ui.clientReservation.MyReservationUI;
 import cse.hotel.client.ui.food.FoodOrderUI;
 import cse.hotel.client.ui.login.LoginUI;
+import cse.hotel.client.ui.payment.PaymentUI;
 
 public class CustomerMainUI extends JFrame {
 
@@ -278,9 +279,9 @@ public class CustomerMainUI extends JFrame {
         return result[0];
     }
 
-    // --- 체크인 핸들러 (디자인 적용) ---
+   // 3. [체크인] 버튼 핸들러
     private void handleCheckIn(ActionEvent e) {
-        // [수정] JOptionPane 대신 커스텀 다이얼로그 사용
+        // [디자인 적용] 커스텀 다이얼로그 사용
         String roomNumStr = showStylishInputDialog(
             "Self Check-In", 
             "체크인하실 객실 번호를 입력해주세요 (예: 201)", 
@@ -291,10 +292,12 @@ public class CustomerMainUI extends JFrame {
             try {
                 int roomNumber = Integer.parseInt(roomNumStr);
                 
-                HashMap<String, Object> dataMap = new HashMap<>();
+                // 데이터 포장 (방 번호 + 내 ID)
+                java.util.HashMap<String, Object> dataMap = new java.util.HashMap<>();
                 dataMap.put("roomNumber", roomNumber);
                 dataMap.put("customerId", this.loggedInCustomerId);
 
+                // 서버 전송
                 Request req = new Request("CHECK_IN", dataMap);
                 Response res = HotelClient.sendRequest(req);
 
@@ -314,39 +317,50 @@ public class CustomerMainUI extends JFrame {
         }
     }
 
-    // --- 체크아웃 핸들러 (디자인 적용) ---
+   // 4. [체크아웃] 버튼 핸들러
     private void handleCheckOut(ActionEvent e) {
-        // [수정] JOptionPane 대신 커스텀 다이얼로그 사용
+        // [디자인 적용] 커스텀 다이얼로그 사용
         String roomNumStr = showStylishInputDialog(
             "Self Check-Out", 
             "체크아웃하실 객실 번호를 입력해주세요", 
-            "퇴실하기"
+            "결제 및 퇴실"
         );
 
         if (roomNumStr != null && !roomNumStr.isEmpty()) {
             try {
                 int roomNumber = Integer.parseInt(roomNumStr);
+                
+                // 로그인 ID가 없으면 테스트 ID 사용 (안전장치)
+                String currentId = (this.loggedInCustomerId != null) ? this.loggedInCustomerId : "GUEST";
 
-                HashMap<String, Object> dataMap = new HashMap<>();
-                dataMap.put("roomNumber", roomNumber);
-                dataMap.put("customerId", this.loggedInCustomerId);
+                // 1. 먼저 청구서(금액 정보)를 요청합니다.
+                java.util.HashMap<String, Object> reqMap = new java.util.HashMap<>();
+                reqMap.put("roomNumber", roomNumber);
+                reqMap.put("customerId", currentId);
 
-                Request req = new Request("CHECK_OUT", dataMap);
+                Request req = new Request("REQUEST_BILL", reqMap);
                 Response res = HotelClient.sendRequest(req);
 
                 if (res.isSuccess()) {
-                    JOptionPane.showMessageDialog(this, 
-                        "👋 체크아웃 완료. 이용해 주셔서 감사합니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+                    // 2. 성공하면 결제창을 띄웁니다. (받아온 billData 전달)
+                    java.util.Map<String, Object> billData = (java.util.Map<String, Object>) res.getResultData();
+                    
+                    // PaymentUI 생성 및 표시
+                    new cse.hotel.client.ui.payment.PaymentUI(this, currentId, roomNumber, billData).setVisible(true);
+                    
                 } else {
                     JOptionPane.showMessageDialog(this, 
-                        "⛔ 체크아웃 실패: " + res.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
+                        "⛔ 체크아웃 진행 불가: " + res.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
                 }
+
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "객실 번호는 숫자만 입력해야 합니다.");
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "통신 오류: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "오류: " + ex.getMessage());
             }
         }
     }
+    
+    
 }

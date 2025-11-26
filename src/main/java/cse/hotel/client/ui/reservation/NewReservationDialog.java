@@ -1,49 +1,127 @@
 package cse.hotel.client.ui.reservation;
 
-import javax.swing.table.DefaultTableModel;
-import java.awt.Color; // 플레이스홀더 색상
-import java.awt.Window; // 창 닫기 기능
-import java.awt.event.FocusAdapter; // 플레이스홀더
-import java.awt.event.FocusEvent; // 플레이스홀더
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import javax.swing.JOptionPane; // 확인 팝업
-import javax.swing.SwingUtilities; // 창 닫기 기능
-import cse.hotel.common.packet.*;
 import cse.hotel.client.network.HotelClient;
-import cse.hotel.common.model.Reservation;
+import cse.hotel.common.packet.Request;
+import cse.hotel.common.packet.Response;
+import cse.hotel.common.model.ClientReservation;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
+// JPanel -> JDialog로 변경하여 팝업창으로 동작하게 함
+public class NewReservationDialog extends javax.swing.JDialog {
 
+    private ReservationUI parentUI; // 부모창 새로고침용
 
-public class NewReservationDialog extends javax.swing.JPanel {
-
-    // ReservationUI로부터 테이블 모델을 전달받아 저장할 멤버 변수
-    private DefaultTableModel mainTableModel;
-
-    public NewReservationDialog() {
-        initComponents();        
+    // 기본 생성자
+    public NewReservationDialog(ReservationUI parent) {
+        this(parent, "");
     }
     
-    public NewReservationDialog(DefaultTableModel tableModel) {
-        initComponents(); // NetBeans GUI 디자이너가 생성한 컴포넌트 초기화
-
-        jButton2.addActionListener(evt -> handleCancel());
-        jButton3.addActionListener(evt -> handleRegister());
+    // 방 번호를 받아서 초기화하는 생성자
+    public NewReservationDialog(ReservationUI parent, String defaultRoomNo) {
+        super(parent, "신규 예약 등록", true); // 모달 다이얼로그 설정
+        this.parentUI = parent;
         
-        // 전달받은 테이블 모델을 이 클래스의 멤버 변수에 저장
-        this.mainTableModel = tableModel;
+        // 1. 팀원 UI 초기화
+        initComponents(); 
+        
+        // 2. 전달받은 방 번호 세팅
+        jTextField6.setText(defaultRoomNo); 
 
-        // ⬇⬇⬇ [추가] 1. 플레이스홀더 설정 ⬇⬇⬇
+        // 3. 플레이스홀더 설정 (팀원 코드 활용)
+        setupPlaceholders();
+        
+        // 4. 버튼 리스너 연결
+        jButton3.addActionListener(evt -> handleRegister()); // 등록
+        jButton2.addActionListener(evt -> dispose());       // 취소
+
+        pack();
+        setLocationRelativeTo(parent); // 부모창 중앙에 띄우기
+    }
+    
+    // --- 서버에 예약 요청 전송 ---
+    private void handleRegister() {
+        try {
+            // 1. 입력값 가져오기 (팀원 UI 컴포넌트에서)
+            String customerId = jTextField2.getText().trim(); // 고객명(ID)
+            String checkIn = jTextField4.getText().trim();
+            String checkOut = jTextField5.getText().trim();
+            String roomNumStr = jTextField6.getText().trim();
+            // (참고: 전화번호 jTextField3, 예약번호 jTextField1은 현재 서버 모델에 없어서 생략)
+
+            // 2. 필수값 검사 (플레이스홀더 값인지도 확인)
+            if (customerId.isEmpty() || customerId.equals("고객명") ||
+                roomNumStr.isEmpty() || roomNumStr.equals("객실 번호 (예: 201)") ||
+                checkIn.equals("YYYY-MM-DD") || checkOut.equals("YYYY-MM-DD")) {
+                JOptionPane.showMessageDialog(this, "필수 정보를 모두 입력해주세요.");
+                return;
+            }
+
+            // 3. ClientReservation 객체 생성
+            ClientReservation res = new ClientReservation(
+                null, // ID는 서버에서 생성
+                customerId,
+                Integer.parseInt(roomNumStr),
+                checkIn,
+                checkOut,
+                150000.0, // 가격 (임시)
+                "CONFIRMED"
+            );
+
+            // 4. 서버 전송
+            Request req = new Request("MAKE_RESERVATION", res);
+            Response resp = HotelClient.sendRequest(req);
+
+            if (resp.isSuccess()) {
+                JOptionPane.showMessageDialog(this, "관리자 권한으로 예약이 등록되었습니다.");
+                if (parentUI != null) parentUI.loadData(); // 부모창 새로고침
+                dispose(); // 닫기
+            } else {
+                JOptionPane.showMessageDialog(this, "등록 실패: " + resp.getMessage());
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "객실 번호는 숫자여야 합니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "오류 발생: " + e.getMessage());
+        }
+    }
+
+    // --- 플레이스홀더 설정 (팀원 코드 활용) ---
+    private void setupPlaceholders() {
         addPlaceholder(jTextField1, "예약 번호 (자동 생성 가능)");
         addPlaceholder(jTextField2, "고객명");
         addPlaceholder(jTextField4, "YYYY-MM-DD");
         addPlaceholder(jTextField5, "YYYY-MM-DD");
-        addPlaceholder(jTextField6, "객실 번호 (예: 201)");
+        if(jTextField6.getText().isEmpty()) addPlaceholder(jTextField6, "객실 번호 (예: 201)");
         addPlaceholder(jTextField3, "XXX-XXXX-XXXX");
-        
     }
+
+    private void addPlaceholder(JTextField textField, String placeholder) {
+        textField.setText(placeholder);
+        textField.setForeground(Color.GRAY);
+        textField.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                if (textField.getText().equals(placeholder)) {
+                    textField.setText(""); textField.setForeground(Color.BLACK);
+                }
+            }
+            @Override public void focusLost(FocusEvent e) {
+                if (textField.getText().isEmpty()) {
+                    textField.setText(placeholder); textField.setForeground(Color.GRAY);
+                }
+            }
+        });
+    }
+
+    // ================================================================================
+    // ▼▼▼ [팀원분의 NetBeans 생성 코드] ▼▼▼
+    // ================================================================================
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         jPanel29 = new javax.swing.JPanel();
@@ -179,20 +257,9 @@ public class NewReservationDialog extends javax.swing.JPanel {
         jButton2.setText("취소");
 
         jButton3.setText("등록");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
 
         jLabel5.setForeground(new java.awt.Color(0, 0, 0));
         jLabel5.setText("예약 번호");
-
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
-            }
-        });
 
         jLabel16.setForeground(new java.awt.Color(0, 0, 0));
         jLabel16.setText("상태");
@@ -204,12 +271,6 @@ public class NewReservationDialog extends javax.swing.JPanel {
 
         jLabel18.setForeground(new java.awt.Color(0, 0, 0));
         jLabel18.setText("전화번호");
-
-        jTextField3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField3ActionPerformed(evt);
-            }
-        });
 
         jLabel19.setForeground(new java.awt.Color(0, 0, 0));
         jLabel19.setText("체크인 날짜");
@@ -224,12 +285,6 @@ public class NewReservationDialog extends javax.swing.JPanel {
         jLabel22.setText("객실 번호");
 
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "스탠다드", "디럭스", "스위트", "패밀리" }));
-
-        jTextField6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField6ActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel29Layout = new javax.swing.GroupLayout(jPanel29);
         jPanel29.setLayout(jPanel29Layout);
@@ -335,8 +390,8 @@ public class NewReservationDialog extends javax.swing.JPanel {
                 .addContainerGap(20, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel29, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -345,81 +400,12 @@ public class NewReservationDialog extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel29, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
-    }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
-
-    private void jTextField6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField6ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField6ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-    try {
-        // 1) 입력 값 수집
-        String reservationId = jTextField1.getText().trim();
-        String status = (String) jComboBox1.getSelectedItem();
-        String customerName = jTextField2.getText().trim();
-        String phone = (String) jTextField3.getText().trim();
-        String checkIn = jTextField4.getText().trim();
-        String checkOut = jTextField5.getText().trim();
-        String roomType = (String) jComboBox2.getSelectedItem();
-        String roomNumberStr = jTextField6.getText().trim();
-
-        // 2) 필수값 검사
-        if (customerName.isEmpty() || roomNumberStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "필수 입력값(고객명, 객실 번호)을 모두 입력해주세요.");
-            return;
-        }
-
-        int roomNumber;
-        try {
-            roomNumber = Integer.parseInt(roomNumberStr);
-        } catch (NumberFormatException nfe) {
-            JOptionPane.showMessageDialog(this, "객실 번호는 숫자로 입력하세요.");
-            return;
-        }
-
-        // 3) Reservation 객체 생성 및 채우기
-        Reservation reservation = new Reservation();
-
-        // 필드 네이밍은 서버 Reservation 클래스에 따라 변경 필요
-        reservation.setReservationId(reservationId);    // 또는 setReservationNo(...) 등
-        reservation.setStatus(status);                 // 서버 모델에 필드가 있다면
-        reservation.setCustomerId(customerName);     // 서버 모델과 이름 일치시
-        reservation.setPhone(phone);                   // 서버 모델에 phone이 있으면
-        reservation.setCheckInDate(checkIn);
-        reservation.setCheckOutDate(checkOut);
-        reservation.setRoomType(roomType);
-        reservation.setRoomNumber(roomNumber);         // 또는 setRoomNo(...)
-
-        // 4) Request 생성 — 서버에서 기대하는 command 문자열을 정확히 적기
-        Request req = new Request("RESERVATION_CREATE", reservation);
-
-        // 5) 전송
-        Response resp = HotelClient.sendRequest(req);
-
-        // 6) 응답 처리
-        if (resp.isSuccess()) {
-            JOptionPane.showMessageDialog(this, "예약 등록이 완료되었습니다!");
-            closeDialog();
-        } else {
-            JOptionPane.showMessageDialog(this, "예약 등록 실패: " + resp.getMessage());
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "오류 발생: " + e.getMessage());
-    }
-    }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jTextField3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField3ActionPerformed
+        pack();
+    }// </editor-fold>                        
 
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JComboBox<String> jComboBox1;
@@ -448,145 +434,5 @@ public class NewReservationDialog extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JTextField jTextField6;
-    // End of variables declaration//GEN-END:variables
-
-    private void addPlaceholder(javax.swing.JTextField textField, String placeholder) {
-    final java.awt.Color PLACEHOLDER_COLOR = java.awt.Color.GRAY;
-    final java.awt.Color TEXT_COLOR = java.awt.Color.BLACK;
-
-    // 초기 상태 설정: 안내 문구 + 회색 글씨
-    textField.setText(placeholder);
-    textField.setForeground(PLACEHOLDER_COLOR);
-
-    // 포커스 리스너 추가 (FocusAdapter 사용)
-    textField.addFocusListener(new java.awt.event.FocusAdapter() {
-
-        @Override
-        public void focusGained(java.awt.event.FocusEvent e) {
-            // 포커스를 얻었을 때 (클릭했을 때)
-            if (textField.getText().equals(placeholder)) {
-                textField.setText("");
-                textField.setForeground(TEXT_COLOR);
-            }
-        }
-
-        @Override
-        public void focusLost(java.awt.event.FocusEvent e) {
-            // 포커스를 잃었을 때 (다른 곳을 클릭했을 때)
-            if (textField.getText().isEmpty()) {
-                textField.setText(placeholder);
-                textField.setForeground(PLACEHOLDER_COLOR);
-                }
-            }
-        });
-    }
-    
-    
-    
-    
-    // 현재 JPanel이 속한 부모 JDialog 창을 닫는 공통 헬퍼 메서드 
-    private void closeDialog() {
-        // 'this'(JPanel)가 속한 최상위 창(JDialog)을 찾습니다.
-        Window hostWindow = SwingUtilities.getWindowAncestor(this);
-        // 찾은 창(JDialog)을 닫습니다.
-        hostWindow.dispose(); 
-    }
-    
-    
-    /**  
-    * [Feature 4]
-    * '취소' 버튼(jButton2) 클릭 시 실행됩니다.
-    */
-   private void handleCancel() {
-       // 1. 사용자에게 종료 여부를 묻는 팝업을 띄웁니다.
-       int result = JOptionPane.showConfirmDialog(
-               this, // 현재 컴포넌트(JPanel)를 기준으로
-               "등록을 취소하고 창을 닫으시겠습니까?", // 메시지
-               "취소 확인", // 타이틀
-               JOptionPane.YES_NO_OPTION);
-
-       // 2. '예(YES)'를 선택했을 때만 창을 닫습니다.
-       if (result == JOptionPane.YES_OPTION) {
-           closeDialog(); // 공통 헬퍼 메서드를 호출하여 창 닫기
-       }
-   }
-   
-   // 등록 버튼
-   private void handleRegister() {
-        // --- (1) UI 컴포넌트에서 입력값 가져오기 ---
-        String resId = jTextField1.getText().trim();
-        String status = jComboBox1.getSelectedItem().toString(); // 콤보박스 값
-        String customerName = jTextField2.getText().trim();
-        String phone = jTextField3.getText().trim(); // 전화번호 (테이블엔 안 들어감)
-        String checkIn = jTextField4.getText().trim();
-        String checkOut = jTextField5.getText().trim();
-        String roomType = jComboBox2.getSelectedItem().toString(); // 콤보박스 값
-        String roomNumStr = jTextField6.getText().trim();
-
-        // --- (2) 비어있는 항목(필수 입력) 검사 ---
-        // 플레이스홀더 기능이 있으므로, 실제 값이 플레이스홀더 문자열과 같은지도 확인합니다.
-        // (필수 항목을 '고객명', '전화번호', '체크인', '체크아웃', '객실 번호'로 가정)
-        if (customerName.isEmpty() || customerName.equals("고객명") ||
-            phone.isEmpty() || phone.equals("XXX-XXXX-XXXX") ||
-            checkIn.isEmpty() || checkIn.equals("YYYY-MM-DD") ||
-            checkOut.isEmpty() || checkOut.equals("YYYY-MM-DD") ||
-            roomNumStr.isEmpty() || roomNumStr.equals("객실 번호 (예: 201)")) 
-        {
-            // --- (3) 경고문 표시 ---
-            JOptionPane.showMessageDialog(this,
-                    "필수 항목을 모두 올바르게 입력해주세요.\n(고객명, 전화번호, 날짜, 객실 번호)",
-                    "입력 오류",
-                    JOptionPane.WARNING_MESSAGE);
-            return; // 등록 처리를 중단합니다.
-        }
-        
-        // (부가 기능) 예약 번호가 비어있으면 자동 생성 (예시)
-        if (resId.isEmpty() || resId.equals("예약 번호 (자동 생성 가능)")) {
-            // 간단하게 현재 시간을 기반으로 ID 생성
-            resId = "R" + (System.currentTimeMillis() % 100000); 
-        }
-
-        // (부가 기능) 객실 번호(String)를 Integer로 변환 (테이블 정렬을 위해)
-        Integer roomNum;
-        try {
-            roomNum = Integer.valueOf(roomNumStr);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "객실 번호는 숫자로만 입력해야 합니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // --- (4) (검증 통과) 테이블에 추가할 데이터 배열 생성 ---
-        // ⚠️ 중요: ReservationUI의 JTable 컬럼 순서와 정확히 일치해야 합니다!
-        // (전화번호(phone)는 수집하지만, 테이블 모델에는 추가하지 않습니다.)
-        Object[] newRowData = {
-            resId,          // [0] 예약번호
-            customerName,   // [1] 고객명
-            checkIn,        // [2] 체크인 날짜
-            checkOut,       // [3] 체크아웃 날짜
-            roomNum,        // [4] 객실번호 (Integer 타입)
-            status,         // [5] 상태
-            roomType        // [6] 타입
-        };
-
-        // --- (5) ReservationUI의 테이블 모델(mainTableModel)에 새 행(row) 추가 ---
-        if (this.mainTableModel != null) {
-            this.mainTableModel.addRow(newRowData);
-            
-            // --- (6) (주석) 추후 파일 처리를 위한 위치 ---
-            // TODO: (파일 처리) 여기에 새 예약 정보(newRowData)와 'phone' 변수를
-            //       파일(e.g., CSV, JSON, 객체 직렬화)에 저장하는 코드를 연결해야 합니다.
-            //       (예: reservationFileManager.saveNewReservation(newRowData, phone);)
-            
-            // --- (7) 등록 완료 후 다이얼로그 닫기 ---
-            closeDialog(); // 공통 헬퍼 메서드 호출
-            
-        } else {
-            // (방어 코드) 모델이 알 수 없는 이유로 null일 경우
-            JOptionPane.showMessageDialog(this, 
-                                        "테이블 모델이 연결되지 않아 등록할 수 없습니다.", 
-                                        "시스템 오류", 
-                                        JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
+    // End of variables declaration                   
 }

@@ -24,7 +24,7 @@ public class HotelClient {
             Properties prop = new Properties();
             if (input == null) {
                 System.err.println("❌ config.properties 파일을 찾을 수 없습니다. 기본값으로 설정합니다.");
-                SERVER_IP = "127.0.0.1";
+                SERVER_IP = "221.162.245.137";
                 SERVER_PORT = 9999;
             } else {
                 prop.load(input);
@@ -34,7 +34,7 @@ public class HotelClient {
             }
         } catch (Exception e) {
             System.err.println("❌ config.properties 로드 중 오류 발생. 기본값 사용.");
-            SERVER_IP = "127.0.0.1";
+            SERVER_IP = "221.162.245.137";
             SERVER_PORT = 9999;
         }
     }

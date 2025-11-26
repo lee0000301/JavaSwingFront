@@ -19,8 +19,8 @@ cse\hotel\client\ui\clientReservation\ClientReservationUI.class
 cse\hotel\client\ui\login\LoginUI$1.class
 cse\hotel\common\packet\Response.class
 cse\hotel\client\ui\food\FoodOrderUI$1.class
-cse\hotel\client\ui\report\ReportUI.class
 cse\hotel\client\ui\clientReservation\MyReservationUI.class
+cse\hotel\client\ui\Report\ReportUI$2.class
 cse\hotel\client\ui\reservation\ReservationUI$1.class
 cse\hotel\common\packet\UserManagementData$Action.class
 cse\hotel\client\ui\login\LoginUI$4.class
@@ -28,16 +28,19 @@ cse\hotel\client\ui\reservation\RoomManagement.class
 cse\hotel\client\ui\main\CustomerMainUI$1.class
 cse\hotel\common\packet\UserManagementPacket.class
 cse\hotel\client\ui\login\LoginUI$2.class
+cse\hotel\client\ui\Report\DateChooserDialog.class
 cse\hotel\client\ui\food\FoodUI.class
 cse\hotel\common\model\Payment.class
 cse\hotel\common\model\ClientReservation.class
 cse\hotel\client\ui\login\LoginUI$5.class
+cse\hotel\client\ui\Report\ReportUI$1.class
 cse\hotel\client\ui\login\LoginUI$6.class
 cse\hotel\client\ui\clientReservation\MyReservationUI$1.class
 cse\hotel\client\ui\reservation\NewReservationDialog$1.class
 cse\hotel\common\model\Room.class
 cse\hotel\client\ui\main\HotelManagementSystem.class
 cse\hotel\client\ui\food\FoodOrderUI.class
+cse\hotel\client\ui\Report\ReportUI$RoundedPanel.class
 cse\hotel\client\ui\food\FoodUI$1.class
 cse\hotel\common\model\Customer.class
 cse\hotel\client\ui\customer\CustomerUI$1.class
@@ -53,3 +56,4 @@ cse\hotel\client\ui\customer\CustomerUI.class
 cse\hotel\client\ui\reservation\NewReservationDialog.class
 cse\hotel\client\ui\login\LoginUI.class
 cse\hotel\common\packet\Request.class
+cse\hotel\client\ui\Report\ReportUI.class

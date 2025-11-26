@@ -485,7 +485,7 @@ public class ReservationUI extends javax.swing.JFrame {
         
         if (JOptionPane.showConfirmDialog(this, "정말 취소하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             try {
-                if (HotelClient.sendRequest(new Request("CANCEL_RESERVATION", id.trim())).isSuccess()) {
+                if (HotelClient.sendRequest(new Request("CANCEL_CLIENT_RESERVATION", id.trim())).isSuccess()) {
                     JOptionPane.showMessageDialog(this, "취소 완료");
                     loadData();
                 }

@@ -7,7 +7,58 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>24</maven.compiler.release>
+        <!-- 컴파일 버전을 17로 통일 (실행 환경 고려) -->
+        <maven.compiler.release>17</maven.compiler.release>
+        <!-- IDE에서 실행되는 기본 메인 클래스 -->
         <exec.mainClass>ch02.javaswingfront.JavaSwingFront</exec.mainClass>
+        <!-- 실제 JAR 실행 메인 클래스 정의 -->
+        <client.mainClass>cse.hotel.client.ui.main.HotelManagementSystem</client.mainClass> 
     </properties>
+
+    <build>
+        <plugins>
+            <!-- 1. Maven JAR Plugin 설정 (Main-Class 지정) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath> 
+                            <mainClass>${client.mainClass}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            
+            <!-- 2. Assembly Plugin 설정 (ReportUI 누락 문제 해결: 모든 클래스를 하나로 묶음) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${client.mainClass}</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>HotelClient-RUNNABLE</finalName> 
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
